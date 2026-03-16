@@ -13,26 +13,46 @@ def normalize_text(text: str) -> str:
     return text.strip()
 
 
+def is_toc_line(line: str) -> bool:
+    stripped = line.strip()
+    if not stripped:
+        return False
+    # Leader dots (.....) typical of TOC entries
+    if re.search(r'\.{3,}', stripped):
+        return True
+    # Ends with page number after spaces/dots: "Introduction    5" or "Introduction .. 5"
+    if re.search(r'[\s.]{2,}\d+\s*$', stripped):
+        return True
+    return False
+
+
+def is_in_toc_context(lines: List[str], idx: int, window: int = 5) -> bool:
+    start = max(0, idx - 2)
+    end = min(len(lines), idx + window)
+    toc_count = sum(1 for l in lines[start:end] if is_toc_line(l))
+    return toc_count >= 2
+
+
 def find_content_start(text: str, patterns: List[str]) -> Tuple[int, str]:
-    normalized = normalize_text(text)
+    lines = text.split('\n')
+
+    # Precompute each line's start position in the original text
+    positions = []
+    pos = 0
+    for line in lines:
+        positions.append(pos)
+        pos += len(line) + 1  # +1 for \n
+
+    normalized_lines = [normalize_text(line) for line in lines]
 
     for pattern in patterns:
-        pattern_normalized = normalize_text(pattern)
-        match = re.search(r'\b' + re.escape(pattern_normalized) + r'\b', normalized)
+        pattern_norm = normalize_text(pattern)
+        regex = re.compile(r'\b' + re.escape(pattern_norm) + r'\b')
 
-        if match:
-            start_pos = match.start()
-            original_pos = 0
-            normalized_count = 0
-
-            for i, char in enumerate(text):
-                if normalized_count >= start_pos:
-                    original_pos = i
-                    break
-                if not char.isspace() or char == ' ':
-                    normalized_count += 1
-
-            return original_pos, pattern
+        for i, norm_line in enumerate(normalized_lines):
+            if regex.search(norm_line):
+                if not is_toc_line(lines[i]) and not is_in_toc_context(lines, i):
+                    return positions[i], pattern
 
     return 0, ""
 
@@ -67,6 +87,8 @@ def clean_single_pdf(pdf_path: str, config: Dict = None) -> Tuple[str, Dict]:
         start_index, found_pattern = find_content_start(full_text, patterns)
 
         cleaned_text = full_text[start_index:].strip()
+        cleaned_text = re.sub(r'-\n(\w)', r'\1', cleaned_text)
+        cleaned_text = re.sub(r'\n{3,}', '\n\n', cleaned_text)
 
         if len(cleaned_text) < config["min_content_length"]:
             cleaned_text = full_text.strip()
