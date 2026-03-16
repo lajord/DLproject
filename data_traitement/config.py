@@ -25,4 +25,11 @@ CLEAN_CONFIG = {
 PATHS = {
     "input_pdfs": "c:/Users/Jordi/Desktop/DLproject/data",
     "output_texts": "c:/Users/Jordi/Desktop/DLproject/rag/data/cleaned",
+    "chroma_db": "../chroma_db",
 }
+
+# OpenAI embedding model
+EMBED_MODEL = "text-embedding-3-small"
+
+# ChromaDB collection name
+COLLECTION_NAME = "books"

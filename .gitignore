@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# ChromaDB — vector store (generated, can be rebuilt)
+chroma_db/
+rag/
+
+# Cleaned texts output (generated from PDFs)
+data_traitement/output/
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
