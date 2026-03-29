@@ -13,7 +13,6 @@ env/
 
 # ChromaDB — vector store (generated, can be rebuilt)
 chroma_db/
-rag/
 
 # Cleaned texts output (generated from PDFs)
 data_traitement/output/
